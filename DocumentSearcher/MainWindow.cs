@@ -65,11 +65,6 @@ namespace Japanese_Helper
             }
         }
 
-        private void SearchButton_TextChanged(object sender, EventArgs e)
-        {
-
-        }
-
         private void InputTextBox_TextChanged(object sender, EventArgs e)
         {
             var textbox = sender as TextBox;
