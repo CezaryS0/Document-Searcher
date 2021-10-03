@@ -8,10 +8,9 @@ namespace Japanese_Helper
 {
     public static class DocXManager
     {
-        private static string keyword = "";
         private static readonly List<string> FoundSentences = new List<string>();
         private static readonly object Lock = new object();
-        private static void SearchDocX(string file)
+        private static void SearchDocX(string file,string keyword)
         {
             var document = DocX.Load(file);
             Parallel.ForEach(document.Tables, table =>
@@ -48,24 +47,32 @@ namespace Japanese_Helper
             });
             document.Dispose();
         }
-        private static void DirSearch(string path)
+        private static string FirstUppercase(string keyword)
+        {
+            return char.ToUpper(keyword[0]) + keyword.Substring(1);
+        }
+        private static string FirstLowerCase(string keyword)
+        {
+            return char.ToLower(keyword[0]) + keyword.Substring(1);
+        }
+        private static void DirSearch(string path,string keyword)
         {
             foreach (string file in Directory.GetFiles(path, "*.docx"))
             {
-                SearchDocX(file);
+                SearchDocX(file,FirstUppercase(keyword));
+                SearchDocX(file,FirstLowerCase(keyword));
             }
 
             foreach (string directory in Directory.GetDirectories(path))
             {
-                DirSearch(directory);
+                DirSearch(directory,keyword);
             }
         }
         public static List<string> FindSentences(string path, string _keyword)
         {
-            keyword = _keyword;
             if (FoundSentences.Count > 0)
                 FoundSentences.Clear();
-            DirSearch(path);
+            DirSearch(path,_keyword);
             return FoundSentences;
         }
         public static void SaveToDocx(string filename)
@@ -81,6 +88,7 @@ namespace Japanese_Helper
                 document.InsertParagraph(elem, false, formatting);
             }
             document.Save();
+            document.Dispose();
         }
     }
 }
