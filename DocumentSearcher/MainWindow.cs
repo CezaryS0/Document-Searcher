@@ -25,7 +25,9 @@ namespace Japanese_Helper
             InputTextBox.Text = "";
             Settings.LoadPathFromFile();
             if (Config.font == null)
+            {
                 Config.font = Font;
+            }
             SetFont(Config.font);
             if (Config.Path == "")
             {
@@ -108,7 +110,6 @@ namespace Japanese_Helper
                         case ".txt":
                             using (var txt = new StreamWriter(save.FileName, false))
                             {
-
                                 foreach (var p in foundPhrases)
                                 {
                                     txt.WriteLine(p);
