@@ -5,6 +5,7 @@
     <TargetFramework>net5.0-windows</TargetFramework>
     <RootNamespace>Japanese_Helper</RootNamespace>
     <UseWindowsForms>true</UseWindowsForms>
+    <ApplicationIcon>28863.ico</ApplicationIcon>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
