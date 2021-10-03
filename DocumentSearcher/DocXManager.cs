@@ -46,6 +46,7 @@ namespace Japanese_Helper
                     }
                 }
             });
+            document.Dispose();
         }
         private static void DirSearch(string path)
         {

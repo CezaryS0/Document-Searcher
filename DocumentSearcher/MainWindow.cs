@@ -34,22 +34,34 @@ namespace Japanese_Helper
                 MessageBox.Show("Search path has not been set!", "Warning!");
             }
         }
+        private void AddLinesToRichtTextBox()
+        {
+            if (foundPhrases == null)
+            {
+                MessageBox.Show(this, "No results found!", "Sorry!");
+            }
+            else
+            {
+                ParagraphsRichTextBox.Clear();
+                foreach (var phrase in foundPhrases)
+                {
+                    ParagraphsRichTextBox.AppendText(phrase + '\n');
+                }
+            }
+        }
         private void SearchButton_Click(object sender, EventArgs e)
         {
             if (Config.Path == "")
             {
                 MessageBox.Show("Search path has not been set!", "Error!");
-                return;
             }
-
-            using (var window = new WaitToFinishWindow())
+            else
             {
-                foundPhrases = window.OpenWindow(this, InputTextBox.Text);
-            }
-            ParagraphsRichTextBox.Clear();
-            foreach (var phrase in foundPhrases)
-            {
-                ParagraphsRichTextBox.AppendText(phrase + '\n');
+                using (var window = new WaitToFinishWindow())
+                {
+                    foundPhrases = window.OpenWindow(this, InputTextBox.Text);
+                }
+                AddLinesToRichtTextBox();
             }
         }
 
@@ -96,31 +108,30 @@ namespace Japanese_Helper
 
         private void saveToFileToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            if (foundPhrases == null)
+            if (foundPhrases != null)
             {
-                return;
-            }
-            using (var save = new SaveFileDialog())
-            {
-                save.Filter = "txt files(*.txt)| *.txt|DocX files(*.docx)| *.docx";
-                if (save.ShowDialog(this) == DialogResult.OK)
+                using (var save = new SaveFileDialog())
                 {
-                    switch (Path.GetExtension(save.FileName))
+                    save.Filter = "txt files(*.txt)| *.txt|DocX files(*.docx)| *.docx";
+                    if (save.ShowDialog(this) == DialogResult.OK)
                     {
-                        case ".txt":
-                            using (var txt = new StreamWriter(save.FileName, false))
-                            {
-                                foreach (var p in foundPhrases)
+                        switch (Path.GetExtension(save.FileName))
+                        {
+                            case ".txt":
+                                using (var txt = new StreamWriter(save.FileName, false))
                                 {
-                                    txt.WriteLine(p);
+                                    foreach (var p in foundPhrases)
+                                    {
+                                        txt.WriteLine(p);
+                                    }
                                 }
-                            }
-                            break;
-                        case ".docx":
-                            DocXManager.SaveToDocx(save.FileName);
-                            break;
-                    }
+                                break;
+                            case ".docx":
+                                DocXManager.SaveToDocx(save.FileName);
+                                break;
+                        }
 
+                    }
                 }
             }
         }
