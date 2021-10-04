@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 using Xceed.Document.NET;
 using Xceed.Words.NET;
@@ -8,10 +8,10 @@ namespace Japanese_Helper
 {
     public static class DocXManager
     {
-        private static readonly List<string> FoundSentences = new List<string>();
         private static readonly object Lock = new object();
-        private static void SearchDocX(string file,string keyword)
+        public static List<string> SearchDocX(string file, string keyword)
         {
+            List<string> foundPhrases = new List<string>();
             var document = DocX.Load(file);
             Parallel.ForEach(document.Tables, table =>
             {
@@ -23,11 +23,11 @@ namespace Japanese_Helper
                         if (p.Text != "")
                             onerow += '|' + p.Text;
                     }
-                    if (onerow.Contains(keyword))
+                    if (Tools.CompareStrings(onerow, keyword))
                     {
                         lock (Lock)
                         {
-                            FoundSentences.Add(onerow);
+                            foundPhrases.Add(onerow);
                         }
                     }
                 }
@@ -36,46 +36,19 @@ namespace Japanese_Helper
             {
                 if (p.ParentContainer == ContainerType.Body)
                 {
-                    if (p.Text.Contains(keyword))
+                    if (Tools.CompareStrings(p.Text, keyword))
                     {
                         lock (Lock)
                         {
-                            FoundSentences.Add(p.Text);
+                            foundPhrases.Add(p.Text);
                         }
                     }
                 }
             });
             document.Dispose();
+            return foundPhrases;
         }
-        private static string FirstUppercase(string keyword)
-        {
-            return char.ToUpper(keyword[0]) + keyword.Substring(1);
-        }
-        private static string FirstLowerCase(string keyword)
-        {
-            return char.ToLower(keyword[0]) + keyword.Substring(1);
-        }
-        private static void DirSearch(string path,string keyword)
-        {
-            foreach (string file in Directory.GetFiles(path, "*.docx"))
-            {
-                SearchDocX(file,FirstUppercase(keyword));
-                SearchDocX(file,FirstLowerCase(keyword));
-            }
-
-            foreach (string directory in Directory.GetDirectories(path))
-            {
-                DirSearch(directory,keyword);
-            }
-        }
-        public static List<string> FindSentences(string path, string _keyword)
-        {
-            if (FoundSentences.Count > 0)
-                FoundSentences.Clear();
-            DirSearch(path,_keyword);
-            return FoundSentences;
-        }
-        public static void SaveToDocx(string filename)
+        public static void SaveToDocx(List<string> foundPhrases, string filename)
         {
             var document = DocX.Create(filename);
             Formatting formatting = new Formatting
@@ -83,7 +56,7 @@ namespace Japanese_Helper
                 FontFamily = new Font(Config.font.Name),
                 Size = Convert.ToInt32(Config.font.Size)
             };
-            foreach (var elem in FoundSentences)
+            foreach (var elem in foundPhrases)
             {
                 document.InsertParagraph(elem, false, formatting);
             }

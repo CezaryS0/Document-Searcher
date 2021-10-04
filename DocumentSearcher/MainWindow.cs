@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
-using System.IO;
 using System.Windows.Forms;
 namespace Japanese_Helper
 {
@@ -31,7 +30,7 @@ namespace Japanese_Helper
             SetFont(Config.font);
             if (Config.Path == "")
             {
-                MessageBox.Show("Search path has not been set!", "Warning!");
+                MessageBox.Show(this, "Search path has not been set!", "Warning!");
             }
         }
         private void AddLinesToRichtTextBox()
@@ -53,13 +52,13 @@ namespace Japanese_Helper
         {
             if (Config.Path == "")
             {
-                MessageBox.Show("Search path has not been set!", "Error!");
+                MessageBox.Show(this, "Search path has not been set!", "Error!");
             }
             else
             {
                 using (var window = new WaitToFinishWindow())
                 {
-                    foundPhrases = window.OpenWindow(this, InputTextBox.Text);
+                    foundPhrases = window.OpenSearchWindow(this, InputTextBox.Text);
                 }
                 AddLinesToRichtTextBox();
             }
@@ -107,23 +106,12 @@ namespace Japanese_Helper
             {
                 using (var save = new SaveFileDialog())
                 {
-                    save.Filter = "txt files(*.txt)| *.txt|DocX files(*.docx)| *.docx";
+                    save.Filter = "TXT files(*.txt)| *.txt|DocX files(*.docx)| *.docx";
                     if (save.ShowDialog(this) == DialogResult.OK)
                     {
-                        switch (Path.GetExtension(save.FileName))
+                        using (var window = new WaitToFinishWindow())
                         {
-                            case ".txt":
-                                using (var txt = new StreamWriter(save.FileName, false))
-                                {
-                                    foreach (var p in foundPhrases)
-                                    {
-                                        txt.WriteLine(p);
-                                    }
-                                }
-                                break;
-                            case ".docx":
-                                DocXManager.SaveToDocx(save.FileName);
-                                break;
+                            window.OpenSaveWindow(this, foundPhrases, save.FileName);
                         }
 
                     }
