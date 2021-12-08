@@ -12,40 +12,48 @@ namespace Japanese_Helper
         public static List<string> SearchDocX(string file, string keyword)
         {
             List<string> foundPhrases = new List<string>();
-            var document = DocX.Load(file);
-            Parallel.ForEach(document.Tables, table =>
+            try
             {
-                foreach (var row in table.Rows)
+                var document = DocX.Load(file);
+                Parallel.ForEach(document.Tables, table =>
                 {
-                    string onerow = "";
-                    foreach (var p in row.Paragraphs)
+                    foreach (var row in table.Rows)
                     {
-                        if (p.Text != "")
-                            onerow += '|' + p.Text;
-                    }
-                    if (Tools.CompareStrings(onerow, keyword))
-                    {
-                        lock (Lock)
+                        string onerow = "";
+                        foreach (var p in row.Paragraphs)
                         {
-                            foundPhrases.Add(onerow);
+                            if (p.Text != "")
+                                onerow += '|' + p.Text;
+                        }
+                        if (Tools.CompareStrings(onerow, keyword))
+                        {
+                            lock (Lock)
+                            {
+                                foundPhrases.Add(onerow);
+                            }
                         }
                     }
-                }
-            });
-            Parallel.ForEach(document.Paragraphs, p =>
-            {
-                if (p.ParentContainer == ContainerType.Body)
+                });
+                Parallel.ForEach(document.Paragraphs, p =>
                 {
-                    if (Tools.CompareStrings(p.Text, keyword))
+                    if (p.ParentContainer == ContainerType.Body)
                     {
-                        lock (Lock)
+                        if (Tools.CompareStrings(p.Text, keyword))
                         {
-                            foundPhrases.Add(p.Text);
+                            lock (Lock)
+                            {
+                                foundPhrases.Add(p.Text);
+                            }
                         }
                     }
-                }
-            });
-            document.Dispose();
+                });
+                document.Dispose();
+            }
+            catch
+            {
+               
+            }
+           
             return foundPhrases;
         }
         public static void SaveToDocx(List<string> foundPhrases, string filename)
